@@ -17,20 +17,18 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/comparator.h"
 #include "common/lang/string.h"
 #include "common/log/log.h"
-#include "common/date.h"
+#include "common/util/date.h"
 #include "storage/field/field.h"
-// TODO add text
-const char* ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "date", "multi", "text"};
 
-const char* attr_type_to_string(AttrType type) 
-{
-    if (type >= UNDEFINED && type <= TEXTS) {
+const char* ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "date"};
+
+const char* attr_type_to_string(AttrType type) {
+    if (type >= UNDEFINED && type <= DATES) {
         return ATTR_TYPE_NAME[type];
     }
     return "unknown";
 }
-AttrType attr_type_from_string(const char* s) 
-{
+AttrType attr_type_from_string(const char* s) {
     for (unsigned int i = 0; i < sizeof(ATTR_TYPE_NAME) / sizeof(ATTR_TYPE_NAME[0]); i++) {
         if (0 == strcmp(ATTR_TYPE_NAME[i], s)) {
             return (AttrType)i;
@@ -39,28 +37,23 @@ AttrType attr_type_from_string(const char* s)
     return UNDEFINED;
 }
 
-Value::Value(int val) 
-{
+Value::Value(int val) {
     set_int(val);
 }
 
-Value::Value(float val) 
-{
+Value::Value(float val) {
     set_float(val);
 }
 
-Value::Value(bool val) 
-{
+Value::Value(bool val) {
     set_boolean(val);
 }
 
-Value::Value(const char* s, int len /*= 0*/) 
-{
+Value::Value(const char* s, int len /*= 0*/) {
     set_string(s, len);
 }
 
-void Value::set_data(char* data, int length) 
-{
+void Value::set_data(char* data, int length) {
     switch (attr_type_) {
         case CHARS: {
             set_string(data, length);
@@ -139,8 +132,7 @@ void Value::set_value(const Value& value) {
 
 const char* Value::data() const {
     switch (attr_type_) {
-        case CHARS:
-        case TEXTS: {
+        case CHARS: {
             return str_value_.c_str();
         } break;
         default: {
@@ -166,8 +158,7 @@ std::string Value::to_string() const {
         case BOOLEANS: {
             os << num_value_.bool_value_;
         } break;
-        case CHARS:
-        case TEXTS: {
+        case CHARS: {
             os << str_value_;
         } break;
         default: {
@@ -180,8 +171,8 @@ std::string Value::to_string() const {
 int Value::compare(const Value& other) const {
     if (this->attr_type_ == other.attr_type_) {
         switch (this->attr_type_) {
-            case INTS:
-            case DATES: {
+            case INTS: 
+            case DATES:{
                 return common::compare_int((void*)&this->num_value_.int_value_, (void*)&other.num_value_.int_value_);
             } break;
             case FLOATS: {
@@ -218,7 +209,6 @@ int Value::compare(const Value& other) const {
 
 int Value::get_int() const {
     switch (attr_type_) {
-        case TEXTS:
         case CHARS: {
             try {
                 return (int)(std::stol(str_value_));
@@ -246,7 +236,6 @@ int Value::get_int() const {
 
 float Value::get_float() const {
     switch (attr_type_) {
-        case TEXTS:
         case CHARS: {
             try {
                 return std::stof(str_value_);
@@ -278,7 +267,6 @@ std::string Value::get_string() const {
 
 bool Value::get_boolean() const {
     switch (attr_type_) {
-        case TEXTS:
         case CHARS: {
             try {
                 float val = std::stof(str_value_);
@@ -316,23 +304,22 @@ bool Value::get_boolean() const {
 }
 
 int Value::get_date() const {
-    switch (attr_type_) {
-        case INTS:
-        case DATES: {
-            return num_value_.int_value_;
-        } break;
-        case TEXTS:
-        case CHARS: {
-            int32_t date = -1;
-            RC rc = string_to_date(str_value_.c_str(), date);
-            if (rc != RC::SUCCESS) {
-                LOG_WARN("Failed to convert data type. str=%s, target_type=%s", str_value_, "DATES");
-            }
-            return date;
-        } break;
-        default: {
-            LOG_WARN("unknown data type. type=%d", attr_type_);
-            return 0;
-        } break;
+  switch (attr_type_)
+  {
+  case INTS: case DATES: {
+    return num_value_.int_value_;
+  }break;
+  case CHARS: {
+    int32_t date = -1;
+    RC rc = string_to_date(str_value_.c_str(), date);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("Failed to convert data type. str=%s, target_type=%s", str_value_, "DATES");
     }
+    return date;
+  }break;
+  default: {
+      LOG_WARN("unknown data type. type=%d", attr_type_);
+      return 0;
+  }break;
+  }
 }

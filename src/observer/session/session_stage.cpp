@@ -100,8 +100,8 @@ void SessionStage::handle_request(StageEvent *event)
 
   Session::set_current_session(sev->session());
   sev->session()->set_current_request(sev);
-  SQLStageEvent sql_event(sev, sql);
-  (void)handle_sql(&sql_event);
+  SQLStageEvent *sql_event = new SQLStageEvent(sev, sql);
+  (void)handle_sql(sql_event);
 
   Communicator *communicator = sev->get_communicator();
   bool need_disconnect = false;
@@ -116,7 +116,7 @@ void SessionStage::handle_request(StageEvent *event)
 
 /**
  * 处理一个SQL语句经历这几个阶段。
- * 虽然看起来流程比较多，但是对于大多数SQL来说，更多的可以关注parse和executor阶段。
+ * 虽然看起来流程比较多，但是对于大多数SQL说，更多的可以关注parse和executor阶段。
  * 通常只有select、delete等带有查询条件的语句才需要进入optimize。
  * 对于DDL语句，比如create table、create index等，没有对应的查询计划，可以直接搜索
  * create_table_executor、create_index_executor来看具体的执行代码。

@@ -82,12 +82,8 @@ RecordPageHandler::~RecordPageHandler() { cleanup(); }
 RC RecordPageHandler::init(DiskBufferPool &buffer_pool, PageNum page_num, bool readonly)
 {
   if (disk_buffer_pool_ != nullptr) {
-    if (frame_->page_num() == page_num) {
-      LOG_WARN("Disk buffer pool has been opened for page_num %d.", page_num);
-      return RC::RECORD_OPENNED;
-    } else {
-      cleanup();
-    }
+    LOG_WARN("Disk buffer pool has been opened for page_num %d.", page_num);
+    return RC::RECORD_OPENNED;
   }
 
   RC ret = RC::SUCCESS;
@@ -160,7 +156,7 @@ RC RecordPageHandler::init_empty_page(DiskBufferPool &buffer_pool, PageNum page_
   memset(bitmap_, 0, page_bitmap_size(page_header_->record_capacity));
 
   if ((ret = buffer_pool.flush_page(*frame_)) != RC::SUCCESS) {
-    LOG_ERROR("Failed to flush page header %d:%d.", buffer_pool.file_desc(), page_num);
+    LOG_ERROR("Failed to flush page header %d:%d.", page_num);
     return ret;
   }
 
@@ -187,7 +183,7 @@ RC RecordPageHandler::insert_record(const char *data, RID *rid)
   ASSERT(readonly_ == false, "cannot insert record into page while the page is readonly");
 
   if (page_header_->record_num == page_header_->record_capacity) {
-    LOG_WARN("Page is full, page_num %d:%d.", disk_buffer_pool_->file_desc(), frame_->page_num());
+    LOG_WARN("Page is full, page_num %d:%d.", frame_->page_num());
     return RC::RECORD_NOMEM;
   }
 
@@ -461,7 +457,7 @@ RC RecordFileHandler::get_record(RecordPageHandler &page_handler, const RID *rid
   }
 
   RC ret = page_handler.init(*disk_buffer_pool_, rid->page_num, readonly);
-  if (OB_FAIL(ret) && ret != RC::RECORD_OPENNED) {
+  if (OB_FAIL(ret)) {
     LOG_ERROR("Failed to init record page handler.page number=%d", rid->page_num);
     return ret;
   }
