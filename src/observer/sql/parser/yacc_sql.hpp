@@ -73,32 +73,31 @@ extern int yydebug;
     STRING_T = 279,
     FLOAT_T = 280,
     DATE_T = 281,
-    TEXT_T = 282,
-    HELP = 283,
-    EXIT = 284,
-    DOT = 285,
-    INTO = 286,
-    VALUES = 287,
-    FROM = 288,
-    WHERE = 289,
-    AND = 290,
-    SET = 291,
-    ON = 292,
-    LOAD = 293,
-    DATA = 294,
-    INFILE = 295,
-    EXPLAIN = 296,
-    EQ = 297,
-    LT = 298,
-    GT = 299,
-    LE = 300,
-    GE = 301,
-    NE = 302,
-    NUMBER = 303,
-    FLOAT = 304,
-    ID = 305,
-    SSS = 306,
-    UMINUS = 307
+    HELP = 282,
+    EXIT = 283,
+    DOT = 284,
+    INTO = 285,
+    VALUES = 286,
+    FROM = 287,
+    WHERE = 288,
+    AND = 289,
+    SET = 290,
+    ON = 291,
+    LOAD = 292,
+    DATA = 293,
+    INFILE = 294,
+    EXPLAIN = 295,
+    EQ = 296,
+    LT = 297,
+    GT = 298,
+    LE = 299,
+    GE = 300,
+    NE = 301,
+    NUMBER = 302,
+    FLOAT = 303,
+    ID = 304,
+    SSS = 305,
+    UMINUS = 306
   };
 #endif
 
@@ -106,7 +105,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 104 "yacc_sql.y"
+#line 103 "yacc_sql.y"
 
   ParsedSqlNode *                   sql_node;
   ConditionSqlNode *                condition;
@@ -121,12 +120,11 @@ union YYSTYPE
   std::vector<ConditionSqlNode> *   condition_list;
   std::vector<RelAttrSqlNode> *     rel_attr_list;
   std::vector<std::string> *        relation_list;
-  std::vector<std::string> *        index_attr_list;
   char *                            string;
   int                               number;
   float                             floats;
 
-#line 130 "yacc_sql.hpp"
+#line 128 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

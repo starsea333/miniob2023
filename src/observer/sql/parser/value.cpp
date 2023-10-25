@@ -22,13 +22,15 @@ See the Mulan PSL v2 for more details. */
 // TODO add text
 const char* ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "date", "multi", "text"};
 
-const char* attr_type_to_string(AttrType type) {
+const char* attr_type_to_string(AttrType type) 
+{
     if (type >= UNDEFINED && type <= TEXTS) {
         return ATTR_TYPE_NAME[type];
     }
     return "unknown";
 }
-AttrType attr_type_from_string(const char* s) {
+AttrType attr_type_from_string(const char* s) 
+{
     for (unsigned int i = 0; i < sizeof(ATTR_TYPE_NAME) / sizeof(ATTR_TYPE_NAME[0]); i++) {
         if (0 == strcmp(ATTR_TYPE_NAME[i], s)) {
             return (AttrType)i;
@@ -37,25 +39,29 @@ AttrType attr_type_from_string(const char* s) {
     return UNDEFINED;
 }
 
-Value::Value(int val) {
+Value::Value(int val) 
+{
     set_int(val);
 }
 
-Value::Value(float val) {
+Value::Value(float val) 
+{
     set_float(val);
 }
 
-Value::Value(bool val) {
+Value::Value(bool val) 
+{
     set_boolean(val);
 }
 
-Value::Value(const char* s, int len /*= 0*/) {
+Value::Value(const char* s, int len /*= 0*/) 
+{
     set_string(s, len);
 }
 
-void Value::set_data(char* data, int length) {
+void Value::set_data(char* data, int length) 
+{
     switch (attr_type_) {
-        case TEXTS:
         case CHARS: {
             set_string(data, length);
         } break;
@@ -125,24 +131,10 @@ void Value::set_value(const Value& value) {
         case BOOLEANS: {
             set_boolean(value.get_boolean());
         } break;
-        case TEXTS: {
-            set_text(value.get_string().c_str());
-        }
         case UNDEFINED: {
             ASSERT(false, "got an invalid value type");
         } break;
     }
-}
-
-void Value::set_text(const char* s) {
-    attr_type_ = TEXTS;
-    // 截断输入字符串为不超过 4096 个字符
-    if (strlen(s) > 4096) {
-        str_value_.assign(s, 4096);
-    } else {
-        str_value_.assign(s);
-    }
-    length_ = str_value_.length();
 }
 
 const char* Value::data() const {
