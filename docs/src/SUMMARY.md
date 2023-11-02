@@ -8,7 +8,6 @@
   - [开发环境搭建(本地调试, 适用 Linux 和 Mac)](./dev-env/how_to_dev_miniob_by_vscode.md)
   - [开发环境搭建(远程调试, 适用于 Window, Linux 和 Mac)](./dev-env/how_to_dev_in_docker_container_by_vscode.md)
   - [Windows 使用Docker开发MiniOB](./dev-env/how_to_dev_miniob_by_docker_on_windows.md)
-  - [手把手教你在windows上用docker和vscode配置环境](./dev-env/how_to_dev_in_docker_container_by_vscode_on_windows.md)
   - [使用Docker开发MiniOB](./dev-env/how-to-dev-using-docker.md)
   - [MiniOB 调试](./dev-env/miniob-how-to-debug.md)
 
@@ -25,10 +24,8 @@
 
 - [OceanBase 数据库大赛](./game/introduction.md)
   - [提交测试需要满足的输出要求](./game/miniob-output-convention.md)
-  - [自助输出调试信息](./game/debug-output.md)
   - [2021届大赛题目介绍](./game/miniob_topics.md)
-  - [使用GitHub参加训练营](./game/github-introduction.md)
-  - [使用Gitee参加训练营](./game/gitee-instructions.md)
+  - [大赛手把手入门教程](./game/gitee-instructions.md)
   - [date 测试说明](./game/miniob-test-comment-date.md)
   - [date 实现解析](./game/miniob-date-implementation.md)
   - [drop table 实现解析](./game/miniob-drop-table-implementation.md)
@@ -42,6 +39,3 @@
   - [第5章 查询优化](./lectures/lecture-5.md)
   - [第6章 事务处理](./lectures/lecture-6.md)
   - [参考资料](./lectures/references.md)
-
-- [Blog](./blog/introduction.md)
-  - [High-Performance Concurrency Control Mechanisms for Main-Memory Databases](./blog/1.md)

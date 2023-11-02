@@ -23,7 +23,10 @@ int MemPoolItem::init(int item_size, bool dynamic, int pool_num, int item_num_pe
 
   if (item_size <= 0 || pool_num <= 0 || item_num_per_pool <= 0) {
     LOG_ERROR("Invalid arguments, item_size:%d, pool_num:%d, item_num_per_pool:%d, this->name:%s.",
-        item_size, pool_num, item_num_per_pool, this->name.c_str());
+        item_size,
+        pool_num,
+        item_num_per_pool,
+        this->name.c_str());
     return -1;
   }
 
@@ -40,7 +43,10 @@ int MemPoolItem::init(int item_size, bool dynamic, int pool_num, int item_num_pe
   this->dynamic = dynamic;
 
   LOG_INFO("Extend one pool, this->size:%d, item_size:%d, item_num_per_pool:%d, this->name:%s.",
-      this->size, item_size, item_num_per_pool, this->name.c_str());
+      this->size,
+      item_size,
+      item_num_per_pool,
+      this->name.c_str());
   return 0;
 }
 
@@ -75,7 +81,7 @@ int MemPoolItem::extend()
   }
 
   MUTEX_LOCK(&this->mutex);
-  void *pool = malloc(static_cast<size_t>(item_num_per_pool) * item_size);
+  void *pool = malloc(item_num_per_pool * item_size);
   if (pool == nullptr) {
     MUTEX_UNLOCK(&this->mutex);
     LOG_ERROR("Failed to extend memory pool, this->size:%d, item_num_per_pool:%d, this->name:%s.",

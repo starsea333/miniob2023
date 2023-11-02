@@ -57,8 +57,7 @@ function try_make
 {
   if [[ $MAKE != false ]]
   then
-    # use single thread `make` if concurrent building failed
-    $MAKE "${MAKE_ARGS[@]}" || $MAKE
+    $MAKE "${MAKE_ARGS[@]}"
   fi
 }
 

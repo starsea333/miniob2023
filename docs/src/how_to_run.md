@@ -24,7 +24,7 @@
 **以监听unix socket的方式启动服务端程序**
 ```bash
 ./bin/observer -f ../etc/observer.ini -s miniob.sock
-```
+```help
 这会以监听unix socket的方式启动服务端程序。
 启动客户端程序：
 ```bash
