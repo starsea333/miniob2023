@@ -26,9 +26,9 @@ class BplusTreeIndex : public Index {
     BplusTreeIndex() = default;
     virtual ~BplusTreeIndex() noexcept;
 
-    RC create(const char* file_name, const IndexMeta& index_meta, const FieldMeta& field_meta);
+    RC create(const char* file_name, const IndexMeta& index_meta, std::vector<FieldMeta> field_metas);
     RC drop() override;
-    RC open(const char* file_name, const IndexMeta& index_meta, const FieldMeta& field_meta);
+    RC open(const char* file_name, const IndexMeta& index_meta, std::vector<FieldMeta> field_metas);
     RC close();
 
     RC insert_entry(const char* record, const RID* rid) override;
@@ -55,7 +55,7 @@ class BplusTreeIndexScanner : public IndexScanner {
     BplusTreeIndexScanner(BplusTreeHandler& tree_handle);
     ~BplusTreeIndexScanner() noexcept override;
 
-    RC next_entry(RID* rid) override;
+    RC next_entry(RID* rid, bool idx_need_increase) override;
     RC destroy() override;
 
     RC open(const char* left_key, int left_len, bool left_inclusive, const char* right_key, int right_len, bool right_inclusive);

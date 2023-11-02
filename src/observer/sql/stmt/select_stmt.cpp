@@ -15,10 +15,6 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/select_stmt.h"
 #include "common/lang/string.h"
 #include "common/log/log.h"
-#include "sql/fun/max_func.h"
-#include "sql/fun/min_func.h"
-#include "sql/fun/count_func.h"
-#include "sql/fun/avg_func.h"
 #include "sql/stmt/filter_stmt.h"
 #include "storage/db/db.h"
 #include "storage/table/table.h"
@@ -30,36 +26,11 @@ SelectStmt::~SelectStmt() {
     }
 }
 
-AggregationFunc* create_func(const char* func_name) {
-    FuncType type = stringToFuncType(func_name);
-    switch (type) {
-        case FuncType::FUNC_MAX: {
-            return new MaxFunc();
-        }
-        case FuncType::FUNC_MIN: {
-            return new MinFunc();
-            break;
-        }
-        case FuncType::FUNC_COUNT: {
-            return new CountFunc();
-            break;
-        }
-        case FuncType::FUNC_AVG: {
-            return new AvgFunc();
-            break;
-        }
-        default:
-            return new AggregationFunc();
-    }
-    return new AggregationFunc();
-}
-
-static void wildcard_fields(Table* table, std::vector<Field>& field_metas, const char* func_name) {
+static void wildcard_fields(Table* table, std::vector<Field>& field_metas) {
     const TableMeta& table_meta = table->table_meta();
     const int field_num = table_meta.field_num();
     for (int i = table_meta.sys_field_num(); i < field_num; i++) {
-        AggregationFunc* func = create_func(func_name);
-        field_metas.push_back(Field(table, table_meta.field(i), func));
+        field_metas.push_back(Field(table, table_meta.field(i)));
     }
 }
 
@@ -86,27 +57,27 @@ RC SelectStmt::create(Db* db, const SelectSqlNode& select_sql, Stmt*& stmt) {
             LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
             return RC::SCHEMA_TABLE_NOT_EXIST;
         }
-
+                                                                                                  
         tables.push_back(table);
         table_map.insert(std::pair<std::string, Table*>(table_name, table));
     }
 
-    // collect query fields in `select` statement 从 select 里面收集字段名
+    // collect query fields in `select` statement                                                         
     std::vector<Field> query_fields;
     for (int i = static_cast<int>(select_sql.attributes.size()) - 1; i >= 0; i--) {
         const RelAttrSqlNode& relation_attr = select_sql.attributes[i];
+
 
         // 将 "*" 展开成所有表字段
         if (common::is_blank(relation_attr.relation_name.c_str()) &&
             0 == strcmp(relation_attr.attribute_name.c_str(), "*")) {
             for (Table* table : tables) {
-                wildcard_fields(table, query_fields, relation_attr.aggregation_func.c_str());
+                wildcard_fields(table, query_fields);
             }
 
         } else if (!common::is_blank(relation_attr.relation_name.c_str())) {
             const char* table_name = relation_attr.relation_name.c_str();
             const char* field_name = relation_attr.attribute_name.c_str();
-            const char* func_name = relation_attr.aggregation_func.c_str();
 
             if (0 == strcmp(table_name, "*")) {
                 if (0 != strcmp(field_name, "*")) {
@@ -114,7 +85,7 @@ RC SelectStmt::create(Db* db, const SelectSqlNode& select_sql, Stmt*& stmt) {
                     return RC::SCHEMA_FIELD_MISSING;
                 }
                 for (Table* table : tables) {
-                    wildcard_fields(table, query_fields, func_name);
+                    wildcard_fields(table, query_fields);
                 }
             } else {
                 auto iter = table_map.find(table_name);
@@ -125,18 +96,20 @@ RC SelectStmt::create(Db* db, const SelectSqlNode& select_sql, Stmt*& stmt) {
 
                 Table* table = iter->second;
                 if (0 == strcmp(field_name, "*")) {
-                    wildcard_fields(table, query_fields, func_name);
+                    wildcard_fields(table, query_fields);
                 } else {
                     const FieldMeta* field_meta = table->table_meta().field(field_name);
                     if (nullptr == field_meta) {
                         LOG_WARN("no such field. field=%s.%s.%s", db->name(), table->name(), field_name);
                         return RC::SCHEMA_FIELD_MISSING;
                     }
-                    AggregationFunc* func = create_func(func_name);
-                    query_fields.push_back(Field(table, field_meta, func));
+
+                    query_fields.push_back(Field(table, field_meta));
                 }
             }
-        } else {
+        } 
+        // TODO 这个分支貌似没什么用
+        else {
             // 暂时不接受表超过一个的情况
             if (tables.size() != 1) {
                 LOG_WARN("invalid. I do not know the attr's table. attr=%s", relation_attr.attribute_name.c_str());
@@ -149,8 +122,8 @@ RC SelectStmt::create(Db* db, const SelectSqlNode& select_sql, Stmt*& stmt) {
                 LOG_WARN("no such field. field=%s.%s.%s", db->name(), table->name(), relation_attr.attribute_name.c_str());
                 return RC::SCHEMA_FIELD_MISSING;
             }
-            AggregationFunc* func = create_func(relation_attr.aggregation_func.c_str());
-            query_fields.push_back(Field(table, field_meta, func));
+
+            query_fields.push_back(Field(table, field_meta));
         }
     }
 
@@ -161,9 +134,21 @@ RC SelectStmt::create(Db* db, const SelectSqlNode& select_sql, Stmt*& stmt) {
         default_table = tables[0];
     }
 
+    // TODO create filter statement in `inner join on` statement
+    FilterStmt *inner_join_filter_stmt = nullptr;
+    RC rc = FilterStmt::create(db,
+                               default_table,
+                               &table_map,
+                               select_sql.join_conditions.data(),
+                               static_cast<int>(select_sql.join_conditions.size()),
+                               inner_join_filter_stmt); 
+    if (rc != RC::SUCCESS) {
+        LOG_WARN("cannot construct inner join filter stmt");
+        return rc;
+    }
     // create filter statement in `where` statement
     FilterStmt* filter_stmt = nullptr;
-    RC rc = FilterStmt::create(db,
+    rc = FilterStmt::create(db,
                                default_table,
                                &table_map,
                                select_sql.conditions.data(),
@@ -180,6 +165,7 @@ RC SelectStmt::create(Db* db, const SelectSqlNode& select_sql, Stmt*& stmt) {
     select_stmt->tables_.swap(tables);
     select_stmt->query_fields_.swap(query_fields);
     select_stmt->filter_stmt_ = filter_stmt;
+    select_stmt->inner_join_filter_stmt_ = inner_join_filter_stmt;
     stmt = select_stmt;
     return RC::SUCCESS;
 }

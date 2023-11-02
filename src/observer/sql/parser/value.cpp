@@ -19,11 +19,11 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "common/util/date.h"
 #include "storage/field/field.h"
-
-const char* ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "date"};
+// TODO add text
+const char* ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans", "date", "multi", "text"};
 
 const char* attr_type_to_string(AttrType type) {
-    if (type >= UNDEFINED && type <= DATES) {
+    if (type >= UNDEFINED && type <= TEXTS) {
         return ATTR_TYPE_NAME[type];
     }
     return "unknown";
@@ -55,6 +55,7 @@ Value::Value(const char* s, int len /*= 0*/) {
 
 void Value::set_data(char* data, int length) {
     switch (attr_type_) {
+        case TEXTS:
         case CHARS: {
             set_string(data, length);
         } break;
@@ -124,15 +125,30 @@ void Value::set_value(const Value& value) {
         case BOOLEANS: {
             set_boolean(value.get_boolean());
         } break;
+        case TEXTS: {
+            set_text(value.get_string().c_str());
+        }
         case UNDEFINED: {
             ASSERT(false, "got an invalid value type");
         } break;
     }
 }
 
+void Value::set_text(const char* s) {
+    attr_type_ = TEXTS;
+    // 截断输入字符串为不超过 4096 个字符
+    if (strlen(s) > 4096) {
+        str_value_.assign(s, 4096);
+    } else {
+        str_value_.assign(s);
+    }
+    length_ = str_value_.length();
+}
+
 const char* Value::data() const {
     switch (attr_type_) {
-        case CHARS: {
+        case CHARS:
+        case TEXTS: {
             return str_value_.c_str();
         } break;
         default: {
@@ -158,7 +174,8 @@ std::string Value::to_string() const {
         case BOOLEANS: {
             os << num_value_.bool_value_;
         } break;
-        case CHARS: {
+        case CHARS:
+        case TEXTS: {
             os << str_value_;
         } break;
         default: {
@@ -209,6 +226,7 @@ int Value::compare(const Value& other) const {
 
 int Value::get_int() const {
     switch (attr_type_) {
+        case TEXTS:
         case CHARS: {
             try {
                 return (int)(std::stol(str_value_));
@@ -236,6 +254,7 @@ int Value::get_int() const {
 
 float Value::get_float() const {
     switch (attr_type_) {
+        case TEXTS:
         case CHARS: {
             try {
                 return std::stof(str_value_);
@@ -267,6 +286,7 @@ std::string Value::get_string() const {
 
 bool Value::get_boolean() const {
     switch (attr_type_) {
+        case TEXTS:
         case CHARS: {
             try {
                 float val = std::stof(str_value_);
@@ -309,6 +329,7 @@ int Value::get_date() const {
         case DATES: {
             return num_value_.int_value_;
         } break;
+        case TEXTS:
         case CHARS: {
             int32_t date = -1;
             RC rc = string_to_date(str_value_.c_str(), date);
@@ -321,22 +342,5 @@ int Value::get_date() const {
             LOG_WARN("unknown data type. type=%d", attr_type_);
             return 0;
         } break;
-    }
-}
-
-AttrType Value::getType() const {
-    return attr_type_;
-}
-
-bool Value::operator<(const Value& other) const {
-    if (attr_type_ == AttrType::INTS && other.getType() == AttrType::INTS) {
-        return get_int() < other.get_int();
-    } else if (getType() == AttrType::FLOATS && other.getType() == AttrType::FLOATS) {
-        return get_float() < other.get_float();
-    } else if (getType() == AttrType::BOOLEANS && other.getType() == AttrType::BOOLEANS) {
-        return get_boolean() < other.get_boolean();
-    } else {
-        // 在处理不同类型的值时，根据需要添加适当的逻辑
-        return false;
     }
 }

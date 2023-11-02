@@ -68,6 +68,7 @@ RC PhysicalPlanGenerator::create(LogicalOperator& logical_operator, unique_ptr<P
         } break;
 
         case LogicalOperatorType::UPDATE: {
+            // TODO
             return create_plan(static_cast<UpdateLogicalOperator&>(logical_operator), oper);
         } break;
 
@@ -193,7 +194,7 @@ RC PhysicalPlanGenerator::create_plan(ProjectLogicalOperator& project_oper, uniq
     ProjectPhysicalOperator* project_operator = new ProjectPhysicalOperator;
     const vector<Field>& project_fields = project_oper.fields();
     for (const Field& field : project_fields) {
-        project_operator->add_projection(field.table(), field.meta(), field.func());
+        project_operator->add_projection(field.table(), field.meta());
     }
 
     if (child_phy_oper) {

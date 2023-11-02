@@ -15,32 +15,30 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <iostream>
-#include "sql/fun/aggregation_func.h"
-#include "storage/field/field_meta.h"
 #include "storage/table/table.h"
+#include "storage/field/field_meta.h"
 
-class TupleCellSpec {
-   public:
-    TupleCellSpec(const char* table_name, const char* field_name, const char* alias = nullptr,const AggregationFunc* func = nullptr);
-    TupleCellSpec(const char* alias, const AggregationFunc* func  = nullptr);
+class TupleCellSpec
+{
+public:
+  TupleCellSpec(const char *table_name, const char *field_name, const char *alias = nullptr);
+  TupleCellSpec(const char *alias);
 
-    const char* table_name() const {
-        return table_name_.c_str();
-    }
-    const char* field_name() const {
-        return field_name_.c_str();
-    }
-    const char* alias() const {
-        return alias_.c_str();
-    }
+  const char *table_name() const
+  {
+    return table_name_.c_str();
+  }
+  const char *field_name() const
+  {
+    return field_name_.c_str();
+  }
+  const char *alias() const
+  {
+    return alias_.c_str();
+  }
 
-    const AggregationFunc* func() const{
-        return func_;
-    }
-
-   private:
-    std::string table_name_;
-    std::string field_name_;
-    std::string alias_;
-    const AggregationFunc* func_;
+private:
+  std::string table_name_;
+  std::string field_name_;
+  std::string alias_;
 };
